@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.ls.broad.tests.RouteTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2020-04-02T16:43:38" hostname="MacBook-Pro-2.fios-router.home" time="31.655">
+  <properties/>
+  <testcase name="getSubwayRoutsInfo" classname="com.ls.broad.tests.RouteTests" time="31.655"/>
+  <system-out><![CDATA[=== There are subway routes: Red Line, Mattapan Trolley, Orange Line, Green Line B, Green Line C, Green Line D, Green Line E, Blue Line ===
+=== The subway route with the most stops is Green-B with 24 stops. ===
+=== The subway route with the fewest stops is Mattapan with 8 stops. ===
+=== These stops connect two or more subway routes: {North Station=[Green-C, Green-E, Orange], Government Center=[Blue, Green-C, Green-E], Haymarket=[Green-C, Green-E, Orange], Hynes Convention Center=[Green-C, Green-B, Green-D], Boylston=[Green-C, Green-B, Green-E, Green-D], State=[Blue, Orange], Kenmore=[Green-C, Green-B, Green-D], Copley=[Green-C, Green-B, Green-E, Green-D], Downtown Crossing=[Red, Orange], Park Street=[Red, Green-C, Green-B, Green-E, Green-D], Arlington=[Green-C, Green-B, Green-E, Green-D]} ===
+=== You need to travel the [Green-C, Green-E] line to get from North Station to Arlington. ===
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
