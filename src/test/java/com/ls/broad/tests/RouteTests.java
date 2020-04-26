@@ -1,11 +1,15 @@
 package com.ls.broad.tests;
 
+import com.ls.broad.tests.appmanager.Line;
+import com.ls.broad.tests.appmanager.Stop;
 import com.ls.broad.tests.constants.Endpoints;
 import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
 import java.util.*;
 import java.util.stream.Collectors;
+
 import static io.restassured.RestAssured.given;
 
 public class RouteTests extends TestBase {
@@ -34,8 +38,8 @@ public class RouteTests extends TestBase {
         routes = Arrays.asList(routeIds);
         List<Line> linesList = new ArrayList<>();
         for (String s : routes) {
-            int number1 = findNumberOfStops(s);
-            String stops = getStopIds(s);
+            int number1 = app.getRouteHelper().findNumberOfStops(s);
+            String stops = app.getRouteHelper().getStopIds(s);
             linesList.add(new Line(s, number1, stops));
         }
 
@@ -50,12 +54,12 @@ public class RouteTests extends TestBase {
         // To get stops that have several routes
         List<String> allStops = new ArrayList<>();
         for (String s : routes) {
-            String stops = getStopIds(s);
+            String stops = app.getRouteHelper().getStopIds(s);
             allStops.add(new String(stops));
         }
         String result = allStops.toString();
         List<String> stopsList = new ArrayList<String>(Arrays.asList(result.split(",")));
-        HashSet<String> duplicates = (HashSet<String>) findDuplicates(stopsList);
+        HashSet<String> duplicates = (HashSet<String>) app.getRouteHelper().findDuplicates(stopsList);
 
         Set<String> dups = new HashSet<String>(duplicates);
 
@@ -64,11 +68,11 @@ public class RouteTests extends TestBase {
         for (String d : dups) {
             for (String r : routes) {
 
-                String stops = getStopIds(r);
+                String stops = app.getRouteHelper().getStopIds(r);
 
                 if (stops.contains(d)) {
                     String id = d;
-                    String stopName = getStopNames(d.replace(" ", ""));
+                    String stopName = app.getRouteHelper().getStopNames(d.replace(" ", ""));
                     String route = r;
 
                     stop.add(new Stop(id, stopName, route));
@@ -90,9 +94,9 @@ public class RouteTests extends TestBase {
         List<Stop> searchingStop1 = new ArrayList<>();
         List<Stop> searchingStop2 = new ArrayList<>();
         for (String s : routes) {
-            List<String> stopIds = getStopId(s);
+            List<String> stopIds = app.getRouteHelper().getStopId(s);
             for (String z : stopIds) {
-                String stops = getStopNames(z);
+                String stops = app.getRouteHelper().getStopNames(z);
                 if (stops.contains(stop1)) {
                     searchingStop1.add(new Stop(stop1, z, s));
                 }
@@ -127,7 +131,7 @@ public class RouteTests extends TestBase {
             if (!common.isEmpty()) {
                 System.out.println("=== You need to travel the " + common + " line to get from " + stop1 + " to " + stop2 + ". ===");
             } else {
-                // I cheated - only Red and Blue lines have no intersection.
+                // Only Red and Blue lines have no intersection.
                 if (route1.equals("Red") && route2.equals("Blue") || (route1.equals("Blue") && route2.equals("Red"))) {
                     System.out.println("=== You need to travel the " + route1 + ", " + "Green-C (or Green-D, or Green-E, or Orange) and " + route2 + " lines to get from " + stop1 + " to " + stop2 + ". ===");
                     // Get both routes if all previous conditions are not met
@@ -135,151 +139,6 @@ public class RouteTests extends TestBase {
                     System.out.println("=== You need to travel the " + route1 + " and " + route2 + " lines to get from " + stop1 + " to " + stop2 + ". ===");
                 }
             }
-        }
-    }
-
-    public static Set<String> findDuplicates(List<String> listContainingDuplicates) {
-
-        final Set<String> setToReturn = new HashSet<String>();
-        final Set<String> set1 = new HashSet<String>();
-
-        for (String yourInt : listContainingDuplicates) {
-            if (!set1.add(yourInt)) {
-                setToReturn.add(yourInt);
-            }
-        }
-        return setToReturn;
-    }
-
-
-    public int findNumberOfStops(String route) {
-        Response res = given()
-                .when()
-                .get(Endpoints.STOPS + "?filter[route]=" + route)
-                .then()
-                .extract()
-                .response();
-        Assert.assertEquals(res.statusCode(), 200);
-
-        List<String> number = res.jsonPath().getList("data.id");
-        int amount = number.size();
-        return amount;
-    }
-
-
-    public String getStopIds(String route) {
-        Response res = given()
-                .when()
-                .header("x-api-key", "617ae3cfb5714ddb95bc8ea573a37a21")
-                .get(Endpoints.STOPS + "?filter[route]=" + route)
-                .then()
-                .extract()
-                .response();
-        Assert.assertEquals(res.statusCode(), 200);
-        List<String> ids = res.jsonPath().getList("data.id");
-        return ids.toString();
-
-    }
-
-    public List<String> getStopId(String route) {
-        Response res = given()
-                .when()
-                .header("x-api-key", "617ae3cfb5714ddb95bc8ea573a37a21")
-                .get(Endpoints.STOPS + "?filter[route]=" + route)
-                .then()
-                .extract()
-                .response();
-        Assert.assertEquals(res.statusCode(), 200);
-        List<String> ids = res.jsonPath().getList("data.id");
-        return ids;
-    }
-
-
-    public String getStopNames(String stopId) {
-
-        Response res = given()
-                .when()
-                .header("x-api-key", "617ae3cfb5714ddb95bc8ea573a37a21")
-                .get(Endpoints.STOPS + "/" + stopId)
-                .then()
-                .extract()
-                .response();
-        Assert.assertEquals(res.statusCode(), 200);
-        String name = res.jsonPath().get("data.attributes.name");
-        return name;
-    }
-
-    public static class Line {
-
-        private String name;
-        private int numberOfStops;
-        private String stops;
-
-        public Line(String name, int numberOfStops, String stops) {
-            this.name = name;
-            this.numberOfStops = numberOfStops;
-            this.stops = stops;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getNumberOfStops() {
-            return numberOfStops;
-        }
-
-        public void setNumberOfStops(int numberOfStops) {
-            this.numberOfStops = numberOfStops;
-        }
-
-        public String getStops() {
-            return stops;
-        }
-
-        public void setStops(String stops) {
-            this.stops = stops;
-        }
-    }
-
-    public static class Stop {
-
-        private String id;
-        private String stopName;
-        private String route;
-
-        public Stop(String id, String stopName, String route) {
-            this.id = id;
-            this.stopName = stopName;
-            this.route = route;
-        }
-
-        public String getStopName() {
-            return stopName;
-        }
-
-        public void setStopName(String stopName) {
-            this.stopName = stopName;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getRoute() {
-            return route;
-        }
-
-        public void setRoute(String route) {
-            this.route = route;
         }
     }
 
